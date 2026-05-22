@@ -22,35 +22,50 @@ body {
   min-height: 100vh;
 }
 
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.6); }
+
+/* Page fade-in */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+main > * {
+  animation: fadeUp 0.4s ease both;
+}
+
+/* Floating background orbs */
+@keyframes float {
+  0%   { transform: translateY(0)    scale(1); }
+  100% { transform: translateY(-40px) scale(1.08); }
+}
+
 /* Premium Utilities */
 @layer utilities {
   .glass-panel {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
   }
 
   .text-gradient {
-    background: linear-gradient(to right, #a855f7, #ec4899);
+    background: linear-gradient(135deg, #a855f7, #ec4899);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-
-  .bg-gradient-radial {
-    background-image: radial-gradient(circle, var(--tw-gradient-stops));
-  }
 }
 
-/* Custom Background Glow */
+/* Background glow orbs */
 .bg-glow-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   z-index: -1;
   overflow: hidden;
   background-color: #030014;
@@ -58,13 +73,13 @@ body {
 
 .bg-glow-1 {
   position: absolute;
-  top: -20%;
+  top: -15%;
   left: -10%;
-  width: 50%;
-  height: 50%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+  width: 55%;
+  height: 55%;
+  background: radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%);
   filter: blur(80px);
-  animation: float 10s ease-in-out infinite alternate;
+  animation: float 12s ease-in-out infinite alternate;
 }
 
 .bg-glow-2 {
@@ -73,25 +88,43 @@ body {
   right: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%);
   filter: blur(100px);
-  animation: float 15s ease-in-out infinite alternate-reverse;
+  animation: float 18s ease-in-out infinite alternate-reverse;
 }
 
-@keyframes float {
-  0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-30px) scale(1.1); }
+.bg-glow-3 {
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  width: 30%;
+  height: 30%;
+  background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+  filter: blur(60px);
+  animation: float 8s ease-in-out infinite alternate;
 }
 
-/* Premium Inputs */
+/* Inputs */
 .premium-input {
-  @apply w-full bg-black/40 text-white rounded-xl px-4 py-3 border border-white/10 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all placeholder:text-gray-500;
+  @apply w-full bg-black/50 text-white rounded-xl px-4 py-3 border border-white/10
+         focus:outline-none focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/20
+         transition-all duration-200 placeholder:text-gray-600;
 }
 
+.premium-input:hover:not(:focus) {
+  border-color: rgba(255,255,255,0.18);
+}
+
+/* Buttons */
 .premium-button {
-  @apply w-full relative overflow-hidden rounded-xl font-semibold py-3.5 transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100;
+  @apply w-full relative overflow-hidden rounded-xl font-semibold py-3.5
+         transition-all duration-200 active:scale-[0.97]
+         disabled:opacity-40 disabled:pointer-events-none;
 }
 
 .premium-button-primary {
-  @apply bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)];
+  @apply bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white
+         shadow-[0_0_24px_rgba(139,92,246,0.35)]
+         hover:shadow-[0_0_36px_rgba(139,92,246,0.55)]
+         hover:from-violet-500 hover:to-fuchsia-500;
 }
