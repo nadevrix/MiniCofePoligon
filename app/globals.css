@@ -115,6 +115,27 @@ main > * {
   border-color: rgba(255,255,255,0.18);
 }
 
+/* Hide native number-input spinner arrows */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Custom dropdown arrow for selects (used with .premium-input) */
+.premium-select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20' fill='none'><path stroke='%23a78bfa' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  background-size: 1rem 1rem;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
 /* Buttons */
 .premium-button {
   @apply w-full relative overflow-hidden rounded-xl font-semibold py-3.5

@@ -138,32 +138,33 @@ function CreateOrderForm() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Monto a cobrar
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-3.5 text-gray-400 font-medium">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium pointer-events-none">$</span>
               <input
                 type="number"
+                inputMode="decimal"
                 required
                 min="0.01"
                 step="0.01"
                 placeholder="10.00"
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                className="premium-input pl-8"
+                className="premium-input no-spinner pl-9"
               />
             </div>
           </div>
-          <div className="w-full sm:w-32">
+          <div className="w-full sm:w-36">
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Token
             </label>
             <select
               value={form.token}
               onChange={(e) => setForm({ ...form, token: e.target.value })}
-              className="premium-input appearance-none bg-black/60"
+              className="premium-input premium-select appearance-none bg-black/60"
             >
               <option value="USDC">USDC</option>
               <option value="USDT">USDT</option>
@@ -178,7 +179,7 @@ function CreateOrderForm() {
           <select
             value={form.payment_limit_minutes}
             onChange={(e) => setForm({ ...form, payment_limit_minutes: e.target.value })}
-            className="premium-input appearance-none bg-black/60"
+            className="premium-input premium-select appearance-none bg-black/60"
           >
             <option value="10">10 minutos</option>
             <option value="15">15 minutos</option>

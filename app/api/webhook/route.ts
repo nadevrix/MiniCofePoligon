@@ -42,24 +42,21 @@ export async function POST(req: NextRequest) {
     const amountReceived = Number(activity.value ?? 0)
     const tolerance = 0.001
 
-    // Buscar orden pending cuya payment_address coincide y monto es cercano
+    // Buscar orden cuya payment_address+token+monto coincida. Incluimos órdenes ya
+    // marcadas como 'expired' porque la blockchain no respeta el countdown del backend:
+    // si llega el dinero, lo registramos igual para no perder el pago en el dashboard.
     const { rows } = await pool.query(
       `SELECT * FROM orders
        WHERE payment_address = $1
          AND token = $2
-         AND status = 'pending'
+         AND status IN ('pending', 'expired')
          AND ABS(amount - $3) <= $4
-       ORDER BY ABS(amount - $3) ASC
+       ORDER BY ABS(amount - $3) ASC, created_at DESC
        LIMIT 1`,
       [toAddress, token, amountReceived, tolerance]
     )
     const order = rows[0]
     if (!order) continue
-
-    if (new Date(order.expires_at) < new Date()) {
-      await pool.query("UPDATE orders SET status = 'expired' WHERE id = $1", [order.id])
-      continue
-    }
 
     const expected = Number(order.amount)
     const diff = Math.abs(amountReceived - expected)

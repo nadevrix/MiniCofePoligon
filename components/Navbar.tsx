@@ -27,10 +27,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group" onClick={() => setOpen(false)}>
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_16px_rgba(139,92,246,0.5)] group-hover:shadow-[0_0_24px_rgba(139,92,246,0.8)] transition-all duration-300">
-              <span className="font-black text-white text-sm">P</span>
+              <span className="font-black text-white text-sm">M</span>
             </div>
             <span className="font-bold text-lg tracking-tight text-white">
-              Pollar <span className="text-gradient">Pay</span>
+              MiniCofe<span className="text-gradient">Poligon</span>
             </span>
           </Link>
 

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pollar Pay | Web3 Payments",
-  description: "Premium Web3 Payment Gateway on Polygon",
+  title: "MiniCofePoligon | Web3 Payments",
+  description: "Web3 Payment Gateway on Polygon",
 };
 
 export default function RootLayout({
