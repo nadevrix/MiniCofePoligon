@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { pool } from '@/lib/db'
-import { TOKEN_CONTRACTS, TOKEN_DECIMALS } from '@/lib/tokens'
+import { TOKEN_CONTRACTS } from '@/lib/tokens'
 import { Token } from '@/types'
 
 function verifySignature(body: string, signature: string): boolean {
@@ -40,10 +40,18 @@ export async function POST(req: NextRequest) {
     if (!token) continue
 
     const amountReceived = Number(activity.value ?? 0)
+    const tolerance = 0.001
 
+    // Buscar orden pending cuya payment_address coincide y monto es cercano
     const { rows } = await pool.query(
-      "SELECT * FROM orders WHERE payment_address = $1 AND status = 'pending'",
-      [toAddress]
+      `SELECT * FROM orders
+       WHERE payment_address = $1
+         AND token = $2
+         AND status = 'pending'
+         AND ABS(amount - $3) <= $4
+       ORDER BY ABS(amount - $3) ASC
+       LIMIT 1`,
+      [toAddress, token, amountReceived, tolerance]
     )
     const order = rows[0]
     if (!order) continue
@@ -55,13 +63,10 @@ export async function POST(req: NextRequest) {
 
     const expected = Number(order.amount)
     const diff = Math.abs(amountReceived - expected)
-    const tolerance = 0.001
-
     const status = diff <= tolerance ? 'paid' : amountReceived < expected ? 'underpaid' : 'overpaid'
 
     await pool.query(
-      `UPDATE orders
-       SET status = $1, amount_received = $2, payer_wallet = $3, paid_at = NOW()
+      `UPDATE orders SET status = $1, amount_received = $2, payer_wallet = $3, paid_at = NOW()
        WHERE id = $4`,
       [status, amountReceived, fromAddress, order.id]
     )
