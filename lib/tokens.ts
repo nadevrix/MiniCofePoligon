@@ -1,8 +1,8 @@
 import { Token } from '@/types'
 
 export const TOKEN_CONTRACTS: Record<Token, string> = {
-  USDC: '0x41E94Eb019C0762f9Bfcf9Fb1e58725bFb0e7582', // Circle USDC en Amoy
-  USDT: '0x41E94Eb019C0762f9Bfcf9Fb1e58725bFb0e7582', // Usando la misma de prueba mientras tanto
+  USDC: process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS || '0x41E94Eb019C0762f9Bfcf9Fb1e58725bFb0e7582',
+  USDT: process.env.NEXT_PUBLIC_USDT_CONTRACT_ADDRESS || '0x41E94Eb019C0762f9Bfcf9Fb1e58725bFb0e7582',
 }
 
 export const TOKEN_DECIMALS: Record<Token, number> = {

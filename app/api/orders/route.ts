@@ -45,16 +45,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
   }
 
-  // Verificar que no haya otra orden pending con el mismo monto en este proyecto
-  const { rows: conflict } = await pool.query(
-    `SELECT id FROM orders
-     WHERE project_id = $1 AND token = $2 AND amount = $3
-     AND status = 'pending' AND expires_at > NOW()`,
-    [project_id, token, amount]
-  )
-  if (conflict.length > 0) {
+  // Resolver colisiones sumando 0.000001
+  let finalAmount = amount
+  let uniqueAmountFound = false
+  let attempts = 0
+
+  while (!uniqueAmountFound && attempts < 100) {
+    const { rows: conflict } = await pool.query(
+      `SELECT id FROM orders
+       WHERE project_id = $1 AND token = $2 AND amount = $3
+       AND status = 'pending' AND expires_at > NOW()`,
+      [project_id, token, finalAmount]
+    )
+    
+    if (conflict.length === 0) {
+      uniqueAmountFound = true
+    } else {
+      finalAmount += 0.000001
+      finalAmount = parseFloat(finalAmount.toFixed(6))
+      attempts++
+    }
+  }
+
+  if (!uniqueAmountFound) {
     return NextResponse.json(
-      { error: 'Ya hay una orden pendiente con ese monto. Espera a que expire o usa un monto diferente.' },
+      { error: 'Demasiadas órdenes pendientes para este monto. Intenta de nuevo más tarde.' },
       { status: 409 }
     )
   }
@@ -66,7 +81,7 @@ export async function POST(req: NextRequest) {
       (project_id, description, amount, token, payment_address, expires_at, payment_limit_minutes)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
-    [project_id, description, amount, token, project.merchant_wallet, expiresAt, payment_limit_minutes]
+    [project_id, description, finalAmount, token, project.merchant_wallet, expiresAt, payment_limit_minutes]
   )
 
   return NextResponse.json(rows[0], { status: 201 })

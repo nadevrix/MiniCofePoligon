@@ -3,6 +3,7 @@ CREATE TABLE projects (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   merchant_wallet VARCHAR(42) NOT NULL,
+  webhook_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

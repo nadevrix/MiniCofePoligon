@@ -6,6 +6,7 @@ export interface Project {
   id: string
   name: string
   merchant_wallet: string
+  webhook_url?: string
   created_at: string
 }
 

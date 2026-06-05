@@ -67,6 +67,33 @@ export async function POST(req: NextRequest) {
        WHERE id = $4`,
       [status, amountReceived, fromAddress, order.id]
     )
+
+    // Notificar al merchant si tiene configurada una webhook_url
+    const { rows: projectRows } = await pool.query(
+      `SELECT webhook_url FROM projects WHERE id = $1`,
+      [order.project_id]
+    )
+    const webhookUrl = projectRows[0]?.webhook_url
+
+    if (webhookUrl) {
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'order.updated',
+            order_id: order.id,
+            order_number: order.order_number,
+            status,
+            amount: expected,
+            amount_received: amountReceived,
+            token
+          })
+        })
+      } catch (err) {
+        console.error('Failed to dispatch webhook for order', order.id, err)
+      }
+    }
   }
 
   return NextResponse.json({ ok: true })

@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import QRCode from 'react-qr-code'
-import { buildPaymentQR } from '@/lib/tokens'
+import { ethers } from 'ethers'
+import { buildPaymentQR, TOKEN_CONTRACTS, TOKEN_DECIMALS } from '@/lib/tokens'
 import { Order } from '@/types'
 import Link from 'next/link'
 
@@ -33,6 +34,41 @@ export default function PayPage() {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [walletConnecting, setWalletConnecting] = useState(false)
+  const [paymentTx, setPaymentTx] = useState('')
+
+  async function handleWalletPayment() {
+    if (!order) return
+    if (!(window as any).ethereum) {
+      alert("No se encontró una billetera Web3 (ej. MetaMask).")
+      return
+    }
+
+    setWalletConnecting(true)
+    try {
+      const provider = new ethers.BrowserProvider((window as any).ethereum)
+      await provider.send("eth_requestAccounts", [])
+      const signer = await provider.getSigner()
+      
+      const tokenContractAddress = TOKEN_CONTRACTS[order.token]
+      const decimals = TOKEN_DECIMALS[order.token]
+      const rawAmount = BigInt(Math.round(order.amount * 10 ** decimals))
+
+      const erc20Abi = [
+        "function transfer(address to, uint256 amount) returns (bool)"
+      ]
+      
+      const tokenContract = new ethers.Contract(tokenContractAddress, erc20Abi, signer)
+      const tx = await tokenContract.transfer(order.payment_address, rawAmount)
+      
+      setPaymentTx(tx.hash)
+    } catch (err: any) {
+      console.error(err)
+      alert(err?.message || "Error al procesar el pago")
+    } finally {
+      setWalletConnecting(false)
+    }
+  }
 
   const fetchOrder = useCallback(async () => {
     try {
@@ -148,6 +184,40 @@ export default function PayPage() {
               <span className="text-gray-400 text-sm font-medium">Polygon Network</span>
             </div>
           </div>
+
+          {/* Pay Button Area */}
+          {isActive && (
+            <div className="mb-6 flex flex-col gap-3">
+               <button
+                 onClick={handleWalletPayment}
+                 disabled={walletConnecting || !!paymentTx}
+                 className="premium-button premium-button-primary w-full py-3.5 flex items-center justify-center gap-2 font-bold text-lg"
+               >
+                 {walletConnecting ? (
+                   <>
+                     <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                     </svg>
+                     Conectando...
+                   </>
+                 ) : paymentTx ? (
+                   'Pago enviado. Esperando confirmación...'
+                 ) : (
+                   <>
+                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                     Pagar con Wallet
+                   </>
+                 )}
+               </button>
+               
+               <div className="flex items-center gap-4 my-2">
+                 <div className="h-px bg-white/10 flex-1"></div>
+                 <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">o escanea</span>
+                 <div className="h-px bg-white/10 flex-1"></div>
+               </div>
+            </div>
+          )}
 
           {/* QR Area */}
           {isActive ? (

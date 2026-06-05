@@ -9,6 +9,7 @@ export default function NewProjectPage() {
   const [form, setForm] = useState({
     name: '',
     merchant_wallet: '',
+    webhook_url: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -89,6 +90,22 @@ export default function NewProjectPage() {
             />
             <p className="text-xs text-gray-500 mt-2">
               Esta es la billetera a la que se enviarán todos los fondos recaudados en este proyecto.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Webhook URL (Opcional)
+            </label>
+            <input
+              type="url"
+              placeholder="https://tu-tienda.com/api/webhook"
+              value={form.webhook_url}
+              onChange={(e) => setForm({ ...form, webhook_url: e.target.value })}
+              className="premium-input text-sm"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Te enviaremos un POST a esta URL cuando un pago sea confirmado.
             </p>
           </div>
 
