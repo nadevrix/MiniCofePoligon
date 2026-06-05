@@ -50,6 +50,31 @@ export default function PayPage() {
       await provider.send("eth_requestAccounts", [])
       const signer = await provider.getSigner()
       
+      const network = await provider.getNetwork()
+      if (network.chainId !== 137n) {
+        try {
+          await (window as any).ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x89' }], // 137 in hex
+          })
+        } catch (switchError: any) {
+          if (switchError.code === 4902) {
+            await (window as any).ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0x89',
+                chainName: 'Polygon Mainnet',
+                nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+                rpcUrls: ['https://polygon-rpc.com/'],
+                blockExplorerUrls: ['https://polygonscan.com/']
+              }]
+            })
+          } else {
+            throw new Error("Debes cambiar a la red Polygon Mainnet en tu billetera para pagar.")
+          }
+        }
+      }
+      
       const tokenContractAddress = TOKEN_CONTRACTS[order.token]
       const decimals = TOKEN_DECIMALS[order.token]
       const rawAmount = BigInt(Math.round(order.amount * 10 ** decimals))

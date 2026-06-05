@@ -53,9 +53,9 @@ export async function POST(req: NextRequest) {
   while (!uniqueAmountFound && attempts < 100) {
     const { rows: conflict } = await pool.query(
       `SELECT id FROM orders
-       WHERE project_id = $1 AND token = $2 AND amount = $3
+       WHERE payment_address = $1 AND token = $2 AND amount = $3
        AND status = 'pending' AND expires_at > NOW()`,
-      [project_id, token, finalAmount]
+      [project.merchant_wallet, token, finalAmount]
     )
     
     if (conflict.length === 0) {

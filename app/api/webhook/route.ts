@@ -11,12 +11,13 @@ function verifySignature(body: string, signature: string): boolean {
   return hmac.digest('hex') === signature
 }
 
-function getTokenFromContract(contractAddress: string): Token | null {
+function getTokensFromContract(contractAddress: string): Token[] {
   const lower = contractAddress.toLowerCase()
+  const tokens: Token[] = []
   for (const [token, address] of Object.entries(TOKEN_CONTRACTS)) {
-    if (address.toLowerCase() === lower) return token as Token
+    if (address.toLowerCase() === lower) tokens.push(token as Token)
   }
-  return null
+  return tokens
 }
 
 export async function POST(req: NextRequest) {
@@ -36,8 +37,8 @@ export async function POST(req: NextRequest) {
     const toAddress: string = activity.toAddress
     const fromAddress: string = activity.fromAddress
     const contractAddress: string = activity.rawContract?.address ?? ''
-    const token = getTokenFromContract(contractAddress)
-    if (!token) continue
+    const tokens = getTokensFromContract(contractAddress)
+    if (tokens.length === 0) continue
 
     const amountReceived = Number(activity.value ?? 0)
     const tolerance = 0.001
@@ -48,12 +49,12 @@ export async function POST(req: NextRequest) {
     const { rows } = await pool.query(
       `SELECT * FROM orders
        WHERE payment_address = $1
-         AND token = $2
+         AND token = ANY($2::text[])
          AND status IN ('pending', 'expired')
          AND ABS(amount - $3) <= $4
        ORDER BY ABS(amount - $3) ASC, created_at DESC
        LIMIT 1`,
-      [toAddress, token, amountReceived, tolerance]
+      [toAddress, tokens, amountReceived, tolerance]
     )
     const order = rows[0]
     if (!order) continue
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
             status,
             amount: expected,
             amount_received: amountReceived,
-            token
+            token: order.token
           })
         })
       } catch (err) {
