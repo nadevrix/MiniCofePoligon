@@ -51,7 +51,7 @@ export default function PayPage() {
       const signer = await provider.getSigner()
       
       const network = await provider.getNetwork()
-      if (network.chainId !== 137n) {
+      if (network.chainId !== BigInt(137)) {
         try {
           await (window as any).ethereum.request({
             method: 'wallet_switchEthereumChain',
