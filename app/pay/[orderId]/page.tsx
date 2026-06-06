@@ -77,7 +77,9 @@ export default function PayPage() {
       
       const tokenContractAddress = TOKEN_CONTRACTS[order.token]
       const decimals = TOKEN_DECIMALS[order.token]
-      const rawAmount = BigInt(Math.round(order.amount * 10 ** decimals))
+      const safeAmount = Number(order.amount).toFixed(decimals)
+      const [intPart, fracPart = ''] = safeAmount.split('.')
+      const rawAmount = BigInt(intPart + fracPart.padEnd(decimals, '0'))
 
       const erc20Abi = [
         "function transfer(address to, uint256 amount) returns (bool)"

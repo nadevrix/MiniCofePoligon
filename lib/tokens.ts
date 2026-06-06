@@ -14,6 +14,9 @@ export const TOKEN_DECIMALS: Record<Token, number> = {
 export function buildPaymentQR(token: Token, toAddress: string, amount: number): string {
   const contractAddress = TOKEN_CONTRACTS[token]
   const decimals = TOKEN_DECIMALS[token]
-  const rawAmount = BigInt(Math.round(amount * 10 ** decimals)).toString()
+  const safeAmount = Number(amount).toFixed(decimals)
+  // Quitar el punto decimal para emular el shift (equivalente manual seguro o podemos usar BigInt en base string)
+  const [intPart, fracPart = ''] = safeAmount.split('.')
+  const rawAmount = BigInt(intPart + fracPart.padEnd(decimals, '0')).toString()
   return `ethereum:${contractAddress}@137/transfer?address=${toAddress}&uint256=${rawAmount}`
 }

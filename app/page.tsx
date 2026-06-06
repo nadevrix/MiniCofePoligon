@@ -61,7 +61,7 @@ function CreateOrderForm() {
         body: JSON.stringify({
           project_id: form.project_id,
           description: form.description,
-          amount: parseFloat(form.amount),
+          amount: parseFloat(form.amount.replace(',', '.')),
           token: form.token,
           payment_limit_minutes: parseInt(form.payment_limit_minutes),
         }),
