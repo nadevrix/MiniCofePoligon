@@ -55,14 +55,16 @@ export async function POST(req: NextRequest) {
     // marcadas como 'expired' porque la blockchain no respeta el countdown del backend:
     // si llega el dinero, lo registramos igual para no perder el pago en el dashboard.
     const { rows } = await pool.query(
-      `SELECT * FROM orders
-       WHERE payment_address = $1
-         AND token = ANY($2::text[])
-         AND status IN ('pending', 'expired')
-         AND ABS(amount - $3) <= $4
-       ORDER BY ABS(amount - $3) ASC, created_at DESC
+      `SELECT orders.* FROM orders
+       JOIN projects ON orders.project_id = projects.id
+       WHERE orders.payment_address = $1
+         AND orders.token = ANY($2::text[])
+         AND orders.status IN ('pending', 'expired')
+         AND ABS(orders.amount - $3) <= $4
+         AND projects.network = $5
+       ORDER BY ABS(orders.amount - $3) ASC, orders.created_at DESC
        LIMIT 1`,
-      [toAddress, tokens, amountReceived, tolerance]
+      [toAddress, tokens, amountReceived, tolerance, network]
     )
     const order = rows[0]
     if (!order) continue
