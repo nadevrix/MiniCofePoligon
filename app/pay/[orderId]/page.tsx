@@ -91,8 +91,27 @@ export default function PayPage() {
       
       const tokenContract = new ethers.Contract(tokenContractAddress, erc20Abi, signer)
       const tx = await tokenContract.transfer(order.payment_address, rawAmount)
-      
       setPaymentTx(tx.hash)
+
+      // Iniciar verificación directa on-chain
+      try {
+        const verifyRes = await fetch(`/api/orders/${order.id}/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ txHash: tx.hash })
+        })
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json()
+          if (verifyData.ok) {
+            // Forzamos actualización de la orden
+            fetchOrder()
+          }
+        }
+      } catch (e) {
+        console.error('Error enviando validación manual:', e)
+        // No alertamos, Alchemy actuará como backup fallback
+      }
+
     } catch (err: any) {
       console.error(err)
       alert(err?.message || "Error al procesar el pago")
