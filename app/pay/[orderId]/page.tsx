@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import QRCode from 'react-qr-code'
 import { ethers } from 'ethers'
-import { buildPaymentQR, TOKEN_CONTRACTS, TOKEN_DECIMALS } from '@/lib/tokens'
+import { buildPaymentQR, NETWORK_CONFIG, TOKEN_DECIMALS } from '@/lib/tokens'
 import { Order } from '@/types'
 import Link from 'next/link'
 
@@ -50,32 +50,36 @@ export default function PayPage() {
       await provider.send("eth_requestAccounts", [])
       const signer = await provider.getSigner()
       
+      const targetChainId = order.network === 'amoy' ? 80002 : 137
+      const targetChainHex = order.network === 'amoy' ? '0x13882' : '0x89'
+      const targetNetworkName = order.network === 'amoy' ? 'Polygon Amoy Testnet' : 'Polygon Mainnet'
+
       const network = await provider.getNetwork()
-      if (network.chainId !== BigInt(137)) {
+      if (network.chainId !== BigInt(targetChainId)) {
         try {
           await (window as any).ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x89' }], // 137 in hex
+            params: [{ chainId: targetChainHex }],
           })
         } catch (switchError: any) {
           if (switchError.code === 4902) {
             await (window as any).ethereum.request({
               method: 'wallet_addEthereumChain',
               params: [{
-                chainId: '0x89',
-                chainName: 'Polygon Mainnet',
+                chainId: targetChainHex,
+                chainName: targetNetworkName,
                 nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
-                rpcUrls: ['https://polygon-rpc.com/'],
-                blockExplorerUrls: ['https://polygonscan.com/']
+                rpcUrls: order.network === 'amoy' ? ['https://rpc-amoy.polygon.technology/'] : ['https://polygon-rpc.com/'],
+                blockExplorerUrls: order.network === 'amoy' ? ['https://amoy.polygonscan.com/'] : ['https://polygonscan.com/']
               }]
             })
           } else {
-            throw new Error("Debes cambiar a la red Polygon Mainnet en tu billetera para pagar.")
+            throw new Error(`Debes cambiar a la red ${targetNetworkName} en tu billetera para pagar.`)
           }
         }
       }
       
-      const tokenContractAddress = TOKEN_CONTRACTS[order.token]
+      const tokenContractAddress = NETWORK_CONFIG[order.network || 'mainnet'].contracts[order.token]
       const decimals = TOKEN_DECIMALS[order.token]
       const safeAmount = Number(order.amount).toFixed(decimals)
       const [intPart, fracPart = ''] = safeAmount.split('.')
@@ -161,7 +165,8 @@ export default function PayPage() {
   }
 
   const ui = STATUS_UI[order.status]
-  const qrValue = buildPaymentQR(order.token, order.payment_address, order.amount)
+  const networkName = order.network === 'amoy' ? 'Polygon Amoy Testnet' : 'Polygon Mainnet'
+  const qrValue = buildPaymentQR(order.network || 'mainnet', order.token, order.payment_address, order.amount)
   const isActive = order.status === 'pending' && !countdown.expired
 
   return (
@@ -208,7 +213,7 @@ export default function PayPage() {
             <div className="inline-flex items-center gap-2 mt-2 bg-black/30 px-3 py-1 rounded-full border border-white/5">
               <span className="text-violet-400 font-bold text-sm">{order.token}</span>
               <span className="text-gray-500 text-xs">•</span>
-              <span className="text-gray-400 text-sm font-medium">Polygon Network</span>
+              <span className="text-gray-400 text-sm font-medium">{networkName}</span>
             </div>
           </div>
 

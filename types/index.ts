@@ -7,6 +7,7 @@ export interface Project {
   name: string
   merchant_wallet: string
   webhook_url?: string
+  network?: 'mainnet' | 'amoy'
   created_at: string
 }
 
@@ -24,5 +25,6 @@ export interface Order {
   amount_received: number | null
   paid_at: string | null
   payer_wallet: string | null
+  network?: 'mainnet' | 'amoy'
   created_at: string
 }

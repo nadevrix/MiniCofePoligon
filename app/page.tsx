@@ -111,7 +111,9 @@ function CreateOrderForm() {
               <>
                 <option value="" disabled>Selecciona un proyecto</option>
                 {projects.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.network === 'amoy' ? 'Testnet' : 'Mainnet'})
+                  </option>
                 ))}
               </>
             )}

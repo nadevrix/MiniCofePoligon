@@ -1,5 +1,9 @@
-export async function registerAddressWithAlchemy(address: string): Promise<void> {
-  const webhookId = process.env.ALCHEMY_WEBHOOK_ID
+import { Network } from './tokens'
+
+export async function registerAddressWithAlchemy(address: string, network: Network = 'mainnet'): Promise<void> {
+  const webhookId = network === 'mainnet' 
+    ? process.env.ALCHEMY_WEBHOOK_ID_MAINNET 
+    : process.env.ALCHEMY_WEBHOOK_ID_AMOY
   const authToken = process.env.ALCHEMY_AUTH_TOKEN
 
   if (!webhookId || !authToken || webhookId === 'pending') return

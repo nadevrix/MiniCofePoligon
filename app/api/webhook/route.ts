@@ -1,20 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { pool } from '@/lib/db'
-import { TOKEN_CONTRACTS } from '@/lib/tokens'
-import { Token } from '@/types'
+import { NETWORK_CONFIG, Network, Token } from '@/lib/tokens'
 
-function verifySignature(body: string, signature: string): boolean {
-  const signingKey = process.env.ALCHEMY_SIGNING_KEY!
+function verifySignature(body: string, signature: string, network: Network): boolean {
+  const signingKey = network === 'mainnet'
+    ? process.env.ALCHEMY_SIGNING_KEY_MAINNET
+    : process.env.ALCHEMY_SIGNING_KEY_AMOY
+  
+  if (!signingKey) return false
+
   const hmac = createHmac('sha256', signingKey)
   hmac.update(body, 'utf8')
   return hmac.digest('hex') === signature
 }
 
-function getTokensFromContract(contractAddress: string): Token[] {
+function getTokensFromContract(contractAddress: string, network: Network): Token[] {
   const lower = contractAddress.toLowerCase()
   const tokens: Token[] = []
-  for (const [token, address] of Object.entries(TOKEN_CONTRACTS)) {
+  const contracts = NETWORK_CONFIG[network].contracts
+  for (const [token, address] of Object.entries(contracts)) {
     if (address.toLowerCase() === lower) tokens.push(token as Token)
   }
   return tokens
@@ -23,8 +28,11 @@ function getTokensFromContract(contractAddress: string): Token[] {
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
   const signature = req.headers.get('x-alchemy-signature') ?? ''
+  
+  const networkParam = req.nextUrl.searchParams.get('network')
+  const network: Network = networkParam === 'amoy' ? 'amoy' : 'mainnet'
 
-  if (process.env.ALCHEMY_SIGNING_KEY && !verifySignature(rawBody, signature)) {
+  if (!verifySignature(rawBody, signature, network)) {
     return NextResponse.json({ error: 'Firma inválida' }, { status: 401 })
   }
 
@@ -37,7 +45,7 @@ export async function POST(req: NextRequest) {
     const toAddress: string = activity.toAddress
     const fromAddress: string = activity.fromAddress
     const contractAddress: string = activity.rawContract?.address ?? ''
-    const tokens = getTokensFromContract(contractAddress)
+    const tokens = getTokensFromContract(contractAddress, network)
     if (tokens.length === 0) continue
 
     const amountReceived = Number(activity.value ?? 0)

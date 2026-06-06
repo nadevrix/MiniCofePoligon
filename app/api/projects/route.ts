@@ -9,9 +9,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { name, merchant_wallet, webhook_url } = body as { name: string; merchant_wallet: string; webhook_url?: string }
+  const { name, merchant_wallet, webhook_url, network = 'mainnet' } = body as { name: string; merchant_wallet: string; webhook_url?: string; network?: 'mainnet' | 'amoy' }
 
-  if (!name || !merchant_wallet) {
+  if (!name || !merchant_wallet || !['mainnet', 'amoy'].includes(network)) {
     return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 })
   }
 
@@ -20,13 +20,13 @@ export async function POST(req: NextRequest) {
   }
 
   const { rows } = await pool.query(
-    'INSERT INTO projects (name, merchant_wallet, webhook_url) VALUES ($1, $2, $3) RETURNING *',
-    [name, merchant_wallet, webhook_url || null]
+    'INSERT INTO projects (name, merchant_wallet, webhook_url, network) VALUES ($1, $2, $3, $4) RETURNING *',
+    [name, merchant_wallet, webhook_url || null, network]
   )
 
   // Registrar la wallet del merchant en Alchemy para monitoreo
   try {
-    await registerAddressWithAlchemy(merchant_wallet)
+    await registerAddressWithAlchemy(merchant_wallet, network)
   } catch (err) {
     console.error('Alchemy registration failed:', err)
   }

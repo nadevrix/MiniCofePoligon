@@ -4,6 +4,7 @@ CREATE TABLE projects (
   name TEXT NOT NULL,
   merchant_wallet VARCHAR(42) NOT NULL,
   webhook_url TEXT,
+  network VARCHAR(20) NOT NULL DEFAULT 'mainnet',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

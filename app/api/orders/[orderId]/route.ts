@@ -7,7 +7,10 @@ export async function GET(
 ) {
   const { orderId } = await params
 
-  const { rows } = await pool.query('SELECT * FROM orders WHERE id = $1', [orderId])
+  const { rows } = await pool.query(
+    'SELECT orders.*, projects.network FROM orders JOIN projects ON orders.project_id = projects.id WHERE orders.id = $1',
+    [orderId]
+  )
   const order = rows[0]
 
   if (!order) {

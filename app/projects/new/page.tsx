@@ -10,6 +10,7 @@ export default function NewProjectPage() {
     name: '',
     merchant_wallet: '',
     webhook_url: '',
+    network: 'mainnet' as 'mainnet' | 'amoy',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -91,6 +92,20 @@ export default function NewProjectPage() {
             <p className="text-xs text-gray-500 mt-2">
               Esta es la billetera a la que se enviarán todos los fondos recaudados en este proyecto.
             </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Red Operativa
+            </label>
+            <select
+              value={form.network}
+              onChange={(e) => setForm({ ...form, network: e.target.value as 'mainnet' | 'amoy' })}
+              className="premium-input text-sm appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M7%2010L12%2015L17%2010%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_12px_center] bg-no-repeat pr-10"
+            >
+              <option value="mainnet">Polygon Mainnet (Dinero Real)</option>
+              <option value="amoy">Polygon Amoy (Red de Pruebas)</option>
+            </select>
           </div>
 
           <div>
